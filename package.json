@@ -6,6 +6,7 @@
     "dev": "node dev.js"
   },
   "dependencies": {
+    "eslint": "^9.39.3",
     "eslint-config-vshift": "^2.0.6",
     "fast-xml-parser": "^4.3.6",
     "node-html-parser": "^6.1.13",

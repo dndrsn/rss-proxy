@@ -15,7 +15,13 @@ export default async function handler(req, res) {
     feedModule = await import(`../../feeds/${slug}.js`);
   }
   catch (err) {
-    res.status(404).send(`Feed not found: ${slug}`);
+    if (err.code === 'ERR_MODULE_NOT_FOUND') {
+      res.status(404).send(`Feed not found: ${slug}`);
+    }
+    else {
+      console.error(`[rss-proxy] Error loading feed "${slug}":`, err);
+      res.status(500).send(`Feed load error: ${err.message}`);
+    }
     return;
   }
 
