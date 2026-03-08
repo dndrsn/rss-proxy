@@ -26,8 +26,9 @@ Each feed module exports an object with:
 |---------------|-------------|
 | `title`       | Channel title |
 | `description` | Channel description |
-| `link`        | URL of the site the feed represents. Used as the clickable link on the feed title in RSS readers, and to locate the site's favicon. Defaults to the proxy's own URL. |
-| `imageUrl`    | URL of the channel image/favicon shown in RSS readers. Defaults to `/favicon.ico` on the proxy's own domain. |
+| `link`        | URL of the site the feed represents. Used as the clickable link on the feed title in RSS readers. Defaults to the proxy's own URL. |
+| `iconUrl`     | URL of a small favicon-style icon shown next to the feed in RSS readers (emitted as `webfeeds:icon`). Defaults to `/favicon.ico` on the proxy's own domain. |
+| `imageUrl`    | URL of a larger channel logo/banner image (emitted as the RSS 2.0 `<image>` element). |
 
 ### Filter an existing RSS feed
 

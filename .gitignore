@@ -143,3 +143,7 @@ vite.config.ts.timestamp-*
 .AppleDouble
 .LSOverride
 ._*
+
+
+# LLM Assistants
+/.claude

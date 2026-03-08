@@ -13,7 +13,7 @@ export default {
     title: 'WSJ - Deopinionated News',
     description: 'Wall Street Journal News feeds with no opinion posts',
     link: 'https://www.wsj.com/',
-    imageUrl: 'https://s.wsj.net/img/meta/wsj_favicon.svg',
+    iconUrl: 'https://www.wsj.com/favicon.ico',
   },
 
   sources: feedUrls.map(url => (
