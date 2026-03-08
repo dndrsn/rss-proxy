@@ -27,7 +27,8 @@ export default async function handler(req, res) {
 
   try {
     const feedUrl = `https://${req.headers.host}/api/feed/${slug}`;
-    const xml = await runFeed(feedModule, { feedUrl });
+    const siteUrl = `https://${req.headers.host}`;
+    const xml = await runFeed(feedModule, { feedUrl, siteUrl });
     res.setHeader('Content-Type', 'application/rss+xml; charset=utf-8');
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
     res.status(200).send(xml);
