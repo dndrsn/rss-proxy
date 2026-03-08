@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node dev.js --serve",
-    "test": "node dev.js"
+    "dev": "node dev.js"
   },
   "dependencies": {
     "eslint-config-vshift": "^2.0.6",
     "fast-xml-parser": "^4.3.6",
-    "node-html-parser": "^6.1.13"
+    "node-html-parser": "^6.1.13",
+    "yargs": "^18.0.0"
   }
 }

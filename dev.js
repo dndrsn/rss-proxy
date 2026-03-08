@@ -1,110 +1,78 @@
 #!/usr/bin/env node
 
 /**
- * Local dev runner for rss-proxy feeds.
+ * Local dev server for rss-proxy feeds (mirrors Vercel routing).
  *
- * CLI mode (print XML to stdout):
- *   node dev.js <feed-slug>
- *   node dev.js my-blog
- *
- * HTTP server mode (mirrors Vercel routing):
- *   node dev.js --serve [--port 3000]
+ *   node dev.js [--port 3000]
  *   Then visit: http://localhost:3000/api/feed/<slug>
  */
 
 import { readdir } from 'fs/promises';
 import { createServer } from 'http';
 
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
+
 import { runFeed } from './lib/run-feed.js';
 
 
-const args = process.argv.slice(2);
-const serveMode = args.includes('--serve');
-const portArg = args[args.indexOf('--port') + 1];
-const PORT = portArg ? parseInt(portArg) : 3000;
+const argv = yargs(hideBin(process.argv))
+  .option('port', {
+    alias: 'p',
+    type: 'number',
+    description: 'Port to listen on',
+    default: 3030,
+  })
+  .help()
+  .argv;
 
-// ── HTTP server mode ────────────────────────────────────────────────────────
+const PORT = argv.port;
 
-if (serveMode) {
-  const server = createServer(async (req, res) => {
-    const url = new URL(req.url, `http://localhost:${PORT}`);
-    const match = url.pathname.match(/^\/api\/feed\/([\w-]+)$/);
 
-    if (url.pathname === '/') {
-      return listFeeds(res);
-    }
+const server = createServer(async (req, res) => {
+  const url = new URL(req.url, `http://localhost:${PORT}`);
+  const match = url.pathname.match(/^\/api\/feed\/([\w-]+)$/);
 
-    if (!match) {
-      res.writeHead(404, { 'Content-Type': 'text/plain' });
-      return res.end('Not found. Try /api/feed/<slug>');
-    }
-
-    const slug = match[1];
-    let feedModule;
-
-    try {
-      // Bust import cache for hot-ish reloading during dev
-      feedModule = await import(`./feeds/${slug}.js?t=${Date.now()}`);
-    }
-    catch {
-      res.writeHead(404, { 'Content-Type': 'text/plain' });
-      return res.end(`Feed not found: ${slug}`);
-    }
-
-    try {
-      const feedUrl = `http://localhost:${PORT}/api/feed/${slug}`;
-      const xml = await runFeed(feedModule, { feedUrl });
-      res.writeHead(200, { 'Content-Type': 'application/rss+xml; charset=utf-8' });
-      res.end(xml);
-    }
-    catch (err) {
-      console.error(`[error] Feed "${slug}":`, err);
-      res.writeHead(500, { 'Content-Type': 'text/plain' });
-      res.end(`Feed error: ${err.message}`);
-    }
-  });
-
-  server.listen(PORT, () => {
-    console.log(`\n🚀 rss-proxy dev server running at http://localhost:${PORT}`);
-    console.log(`   Feed endpoint: http://localhost:${PORT}/api/feed/<slug>\n`);
-  });
-}
-
-// ── CLI mode ────────────────────────────────────────────────────────────────
-
-else {
-  const slug = args.find((a) => !a.startsWith('--'));
-
-  if (!slug) {
-    console.log('Usage: node dev.js <feed-slug>\n       node dev.js --serve [--port 3000]\n');
-    listFeedsCli();
+  if (url.pathname === '/') {
+    return listFeeds(res);
   }
-  else {
-    runCli(slug);
+
+  if (!match) {
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    return res.end('Not found. Try /api/feed/<slug>');
   }
-}
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
-
-const runCli = async (slug) => {
+  const slug = match[1];
   let feedModule;
+
   try {
-    feedModule = await import(`./feeds/${slug}.js`);
+    // Bust import cache for hot-ish reloading during dev
+    feedModule = await import(`./feeds/${slug}.js?t=${Date.now()}`);
   }
   catch {
-    console.error(`❌ Feed not found: feeds/${slug}.js`);
-    process.exit(1);
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    return res.end(`Feed not found: ${slug}`);
   }
 
   try {
-    const xml = await runFeed(feedModule, { feedUrl: `http://localhost/api/feed/${slug}` });
-    process.stdout.write(xml + '\n');
+    const feedUrl = `http://localhost:${PORT}/api/feed/${slug}`;
+    const xml = await runFeed(feedModule, { feedUrl });
+    res.writeHead(200, { 'Content-Type': 'application/rss+xml; charset=utf-8' });
+    res.end(xml);
   }
   catch (err) {
-    console.error(`❌ Feed error:`, err);
-    process.exit(1);
+    console.error(`[error] Feed "${slug}":`, err);
+    res.writeHead(500, { 'Content-Type': 'text/plain' });
+    res.end(`Feed error: ${err.message}`);
   }
-};
+});
+
+server.listen(PORT, () => {
+  console.log(`\n🚀 rss-proxy dev server running at http://localhost:${PORT}`);
+  console.log(`   Feed endpoint: http://localhost:${PORT}/api/feed/<slug>\n`);
+});
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
 
 const getFeedSlugs = async () => {
   try {
@@ -113,17 +81,6 @@ const getFeedSlugs = async () => {
   }
   catch {
     return [];
-  }
-};
-
-const listFeedsCli = async () => {
-  const slugs = await getFeedSlugs();
-  if (slugs.length === 0) {
-    console.log('No feeds found in ./feeds/');
-  }
-  else {
-    console.log('Available feeds:');
-    slugs.forEach((s) => console.log(`  • ${s}  →  node dev.js ${s}`));
   }
 };
 
