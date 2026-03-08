@@ -12,6 +12,7 @@ export default {
   meta: {
     title: 'WSJ - Deopinionated News',
     description: 'Wall Street Journal News feeds with no opinion posts',
+    link: 'https://www.wsj.com',
   },
 
   sources: feedUrls.map(url => (
