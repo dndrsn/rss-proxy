@@ -56,7 +56,8 @@ const server = createServer(async (req, res) => {
 
   try {
     const feedUrl = `http://localhost:${PORT}/api/feed/${slug}`;
-    const xml = await runFeed(feedModule, { feedUrl });
+    const siteUrl = `http://localhost:${PORT}`;
+    const xml = await runFeed(feedModule, { feedUrl, siteUrl });
     res.writeHead(200, { 'Content-Type': 'application/rss+xml; charset=utf-8' });
     res.end(xml);
   }
